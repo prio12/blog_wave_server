@@ -20,30 +20,33 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
+  try {
+    const database = client.db("blog_wave");
+    const users = database.collection("users");
 
-    try {
-        const database = client.db("blog_wave");
-        const users = database.collection('users');
+    //Post all users
 
-        //Post all users
-
-        app.post('/users', async(req,res) =>{
-            const user = req.body;
-            const result = await users.insertOne(user);
-            console.log(result);
-            res.send(result)
-        })
-
-    } 
-    catch (error) {
-        
-    }
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const userEmail = user.email;
+      //finding if the user with same email exist in db
+      const existingUser = await users.findOne({ email: userEmail });
+      if (existingUser) {
+        return res.status(409).send("User already exist in database!");
+      } 
+      else {
+        const result = await users.insertOne(user);
+        console.log(result);
+        res.send(result);
+      }
+    });
+  } catch (error) {}
 }
-run().catch(console.log)
+run().catch(console.log);
 
 app.get("/", (req, res) => {
-    res.send("Blog Wave Server is running");
-  });
+  res.send("Blog Wave Server is running");
+});
 
 app.listen(port, () => {
   console.log("blog wave server is running on port", port);
