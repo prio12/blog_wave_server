@@ -28,9 +28,9 @@ async function run() {
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      const userEmail = user.email;
+      const uid = user.uid;
       //finding if the user with same email exist in db
-      const existingUser = await users.findOne({ email: userEmail });
+      const existingUser = await users.findOne({ uid: uid });
       if (existingUser) {
         return res.status(409).send("User already exist in database!");
       } 
