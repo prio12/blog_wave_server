@@ -22,8 +22,20 @@ const client = new MongoClient(uri, {
 async function run() {
 
     try {
-        
-    } catch (error) {
+        const database = client.db("blog_wave");
+        const users = database.collection('users');
+
+        //Post all users
+
+        app.post('/users', async(req,res) =>{
+            const user = req.body;
+            const result = await users.insertOne(user);
+            console.log(result);
+            res.send(result)
+        })
+
+    } 
+    catch (error) {
         
     }
 }
