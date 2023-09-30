@@ -50,7 +50,19 @@ async function run() {
       res.send(result)
 
     })
+
+    //get all blogs
+
+    app.get("/blogs", async(req,res) =>{
+      const query = {};
+      const posts = await blogs.find(query).toArray();
+      res.send(posts) 
+    })
+
     
+
+
+
   } catch (error) {}
 }
 run().catch(console.log);
