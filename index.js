@@ -23,6 +23,7 @@ async function run() {
   try {
     const database = client.db("blog_wave");
     const users = database.collection("users");
+    const blogs = database.collection("blogs");
 
     //Post all users
 
@@ -40,6 +41,16 @@ async function run() {
         res.send(result);
       }
     });
+
+    //post all blogs
+
+    app.post('/blogs', async (req,res) =>{
+      const post = req.body;
+      const result = await blogs.insertOne(post);
+      res.send(result)
+
+    })
+    
   } catch (error) {}
 }
 run().catch(console.log);
