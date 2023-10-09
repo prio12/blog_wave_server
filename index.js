@@ -98,7 +98,14 @@ async function run() {
       res.send(blog);
     })
 
-
+   //get only a user's blog
+   app.get('/blogs/myBlogs/:uid',async(req,res) =>{
+    const uid = req.params.uid;
+    console.log(uid);
+    const query = {userUid:uid}
+    const result = await blogs.find(query).toArray();
+    res.send(result)
+   })
 
   } catch (error) {}
 }
