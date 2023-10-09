@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.use(cors());
 app.use(express.json());
@@ -42,6 +42,29 @@ async function run() {
       }
     });
 
+    //edit a user's profile
+
+    app.put('/users/:userId', async(req,res) =>{
+      const userId = req.params.userId;
+      const content = req.body;
+      const filter = {uid:userId};
+      const options = { upsert: true };
+      const updateDoc = { $set: {} };
+      if (content.photoURL) {
+        updateDoc.$set.profilePic = content.photoURL;
+      }
+
+      if (content.displayName) {
+        updateDoc.$set.name = content.displayName;
+      }
+      if (content.about) {
+        updateDoc.$set.about = content.about 
+      }
+      
+      const result = await users.updateOne(filter,updateDoc,options);
+      res.send(result)
+    })
+
     //post all blogs
 
     app.post('/blogs', async (req,res) =>{
@@ -57,6 +80,15 @@ async function run() {
       const query = {};
       const posts = await blogs.find(query).toArray();
       res.send(posts) 
+    })
+
+    //get a blog for details
+
+    app.get('/blogs/:blogId', async (req,res) =>{
+      const _id = req.params.blogId;
+      const query = {_id : new ObjectId(_id)};
+      const blog = await blogs.findOne(query);
+      res.send(blog);
     })
 
     
