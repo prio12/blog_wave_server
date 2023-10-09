@@ -65,6 +65,13 @@ async function run() {
       res.send(result)
     })
 
+    //get a user's Details
+    app.get('/users/:userUid', async (req,res) =>{
+      const userUid = req.params.userUid;
+      const query = {uid:userUid};
+      const result = await users.findOne(query);
+      res.send(result)
+    })
     //post all blogs
 
     app.post('/blogs', async (req,res) =>{
@@ -90,8 +97,6 @@ async function run() {
       const blog = await blogs.findOne(query);
       res.send(blog);
     })
-
-    
 
 
 
