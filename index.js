@@ -137,9 +137,11 @@ async function run() {
     //   const result = await blogs.updateOne(filter,updateDoc,options);
     //   res.send(result);
     //  })
-    app.put("/blogs/blogDetails/likes/:_id", async (req, res) => {
+    app.put("/blogs/blogDetails/likes/:_id/:userId", async (req, res) => {
       try {
         const _id = req.params._id;
+        const userId = req.params.userId;
+        console.log(userId);
         const filter = { _id: new ObjectId(_id) };
         const options = { upsert: true };
         const blog = await blogs.findOne(filter);
@@ -147,6 +149,9 @@ async function run() {
         const updateDoc = {
           $set: {
             claps: newClaps,
+          },
+          $addToSet: {
+            likedBy: userId,
           },
         };
         await blogs.updateOne(filter, updateDoc, options);
@@ -159,12 +164,12 @@ async function run() {
 
     //delete a blog
 
-    app.delete("/delete/:_id", async (req,res) =>{
+    app.delete("/delete/:_id", async (req, res) => {
       const _id = req.params._id;
-      const query = {_id : new ObjectId(_id)};
+      const query = { _id: new ObjectId(_id) };
       const result = await blogs.deleteOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
   } catch (error) {}
 }
 run().catch(console.log);
