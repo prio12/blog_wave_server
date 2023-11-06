@@ -45,6 +45,7 @@ async function run() {
 
     app.put("/users/:userId", async (req, res) => {
       const userId = req.params.userId;
+      console.log(userId);
       const content = req.body;
       const filter = { uid: userId };
       const options = { upsert: true };
@@ -58,6 +59,9 @@ async function run() {
       }
       if (content.about) {
         updateDoc.$set.about = content.about;
+      }
+      if (content.selectedBlogData) {
+        updateDoc.$push = {bookmarks:content.selectedBlogData};
       }
 
       const result = await users.updateOne(filter, updateDoc, options);
