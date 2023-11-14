@@ -166,6 +166,21 @@ async function run() {
       }
     });
 
+    //add response for a blog
+
+    app.put("/blogs/selectedBLog/responses/:_id", async (req,res) =>{
+      const _id = req.params._id;
+      const responseData = req.body;
+      const filter = {_id: new ObjectId(_id)};
+      const options = { upsert: true };
+      const updateDoc = {
+        $push: { responses: responseData}
+      }
+      await blogs.updateOne(filter,updateDoc,options);
+      const updatedBlog = await blogs.findOne(filter);
+      res.json(updatedBlog)
+    })
+
     //delete a blog
 
     app.delete("/delete/:_id", async (req, res) => {
