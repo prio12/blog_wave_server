@@ -41,6 +41,14 @@ async function run() {
       }
     });
 
+    //get all user's
+
+    app.get("/users", async (req,res) =>{
+      const query = {};
+      const allUsers = await users.find(query).toArray();
+      res.send(allUsers)
+    })
+
     //edit a user's profile
 
     app.put("/users/:userId", async (req, res) => {
@@ -62,11 +70,11 @@ async function run() {
         updateDoc.$set.about = content.about;
       }
       if (content.selectedBlogData) {
-        updateDoc.$push = {bookmarks:content.selectedBlogData};
+        updateDoc.$push = { bookmarks: content.selectedBlogData };
       }
 
       if (content.blog) {
-        updateDoc.$push = {clapped:content.blog};
+        updateDoc.$push = { clapped: content.blog };
       }
 
       const result = await users.updateOne(filter, updateDoc, options);
@@ -173,18 +181,18 @@ async function run() {
 
     //add response for a blog
 
-    app.put("/blogs/selectedBLog/responses/:_id", async (req,res) =>{
+    app.put("/blogs/selectedBLog/responses/:_id", async (req, res) => {
       const _id = req.params._id;
       const responseData = req.body;
-      const filter = {_id: new ObjectId(_id)};
+      const filter = { _id: new ObjectId(_id) };
       const options = { upsert: true };
       const updateDoc = {
-        $push: { responses: responseData}
-      }
-      await blogs.updateOne(filter,updateDoc,options);
+        $push: { responses: responseData },
+      };
+      await blogs.updateOne(filter, updateDoc, options);
       const updatedBlog = await blogs.findOne(filter);
-      res.json(updatedBlog)
-    })
+      res.json(updatedBlog);
+    });
 
     //delete a blog
 
