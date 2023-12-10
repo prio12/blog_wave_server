@@ -52,13 +52,14 @@ async function run() {
     //edit a user's profile
 
     app.put("/users/:userId", async (req, res) => {
-      const userId = req.params.userId;
-      console.log(userId);
+      const userId = req.params.userId; //currently logged in who clicked follow
       const content = req.body;
-      console.log(content);
+      const targetedUser = content.follower?.uid; //targeted user
       const filter = { uid: userId };
+      const filterTargetedUser = {uid:targetedUser}
       const options = { upsert: true };
       const updateDoc = { $set: {} };
+      const updateDocTargetedUser = { $set: {} };
       if (content.photoURL) {
         updateDoc.$set.profilePic = content.photoURL;
       }
@@ -77,8 +78,14 @@ async function run() {
         updateDoc.$push = { clapped: content.blog };
       }
 
+      if (content.following && content.follower) {
+        updateDoc.$push = {following: content.follower}
+        updateDocTargetedUser.$push = {followers:content.following}
+      }
+
       const result = await users.updateOne(filter, updateDoc, options);
-      res.send(result);
+      const targetedResult = await users.updateOne(filterTargetedUser,updateDocTargetedUser,options)
+      res.send({result,targetedResult});
     });
 
     //get a user's Details
