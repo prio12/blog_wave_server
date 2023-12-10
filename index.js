@@ -47,6 +47,7 @@ async function run() {
       const userId = req.params.userId;
       console.log(userId);
       const content = req.body;
+      console.log(content);
       const filter = { uid: userId };
       const options = { upsert: true };
       const updateDoc = { $set: {} };
@@ -62,6 +63,10 @@ async function run() {
       }
       if (content.selectedBlogData) {
         updateDoc.$push = {bookmarks:content.selectedBlogData};
+      }
+
+      if (content.blog) {
+        updateDoc.$push = {clapped:content.blog};
       }
 
       const result = await users.updateOne(filter, updateDoc, options);
