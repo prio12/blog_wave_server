@@ -79,8 +79,14 @@ async function run() {
       }
 
       if (content.following && content.follower) {
-        updateDoc.$push = {following: content.follower}
+        if (content.action === "follow") {
+          updateDoc.$push = {following: content.follower}
         updateDocTargetedUser.$push = {followers:content.following}
+        }
+        else if (content.action === "unFollow") {
+          updateDoc.$pull = {following: content.follower}
+        updateDocTargetedUser.$pull = {followers:content.following}
+        }
       }
 
       const result = await users.updateOne(filter, updateDoc, options);
