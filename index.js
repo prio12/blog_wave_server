@@ -63,6 +63,7 @@ async function run() {
       if (content.photoURL) {
         updateDoc.$set.profilePic = content.photoURL;
       }
+      
 
       if (content.displayName) {
         updateDoc.$set.name = content.displayName;
@@ -138,6 +139,7 @@ async function run() {
     //update a user's blog
     app.put("/blogs/myBlogs/edit/:_id", async (req, res) => {
       const _id = req.params._id;
+      console.log(_id);
       const data = req.body;
       const filter = { _id: new ObjectId(_id) };
       const options = { upsert: true };
@@ -151,22 +153,35 @@ async function run() {
       const result = blogs.updateOne(filter, updateDoc, options);
       res.send(result);
     });
-    //clap operation
+    //update authorInfo for blogs
+    app.put("/blogs/updateAuthorInfo", async (req,res) =>{
+      const data = req.body;
+      const filter = {userUid : data.userUid};
+      const options = {multi:true};
 
-    //  app.put('/blogs/blogDetails/likes/:_id', async (req,res) =>{
-    //   const _id = req.params._id;
-    //   const filter = {_id: new ObjectId(_id)};
-    //   const options = {upsert:true};
-    //   const blog = await blogs.findOne(filter);
-    //   const newClaps = blog.claps + 1;
-    //   const updateDoc = {
-    //     $set:{
-    //       claps:newClaps,
-    //     }
-    //   }
-    //   const result = await blogs.updateOne(filter,updateDoc,options);
-    //   res.send(result);
-    //  })
+      if (data.userUid && data.author) {
+        const updateDoc = {
+          $set: {
+            author:data.author
+          }
+        }
+        const result = await blogs.updateMany(filter,updateDoc,options);
+        console.log(result);
+        res.send(result)
+      }
+
+      else if (data.userUid && data.photoURL) {
+        const updatedDoc = {
+          $set: {
+            authorImage:data.photoURL
+          }
+        }
+
+        const result = await blogs.updateMany(filter,updatedDoc,options);
+        res.send(result)
+      }
+      
+    })
     app.put("/blogs/blogDetails/likes/:_id/:userId", async (req, res) => {
       try {
         const _id = req.params._id;
