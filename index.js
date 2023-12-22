@@ -54,6 +54,7 @@ async function run() {
     app.put("/users/:userId", async (req, res) => {
       const userId = req.params.userId; //currently logged in who clicked follow
       const content = req.body;
+      console.log(content);
       const targetedUser = content.follower?.uid; //targeted user
       const filter = { uid: userId };
       const filterTargetedUser = {uid:targetedUser}
@@ -71,8 +72,18 @@ async function run() {
       if (content.about) {
         updateDoc.$set.about = content.about;
       }
+      // if (content.selectedBlogData) {
+      //   updateDoc.$push = { bookmarks: content.selectedBlogData };
+      // }
+
       if (content.selectedBlogData) {
-        updateDoc.$push = { bookmarks: content.selectedBlogData };
+        if (content.action.action ==="Bookmark") {
+          updateDoc.$push = {bookmarks:content.selectedBlogData.selectedBlogData};
+        }
+        if (content.action.action ==="RemoveBookmark") {
+          updateDoc.$pull = {bookmarks:content.selectedBlogData.selectedBlogData};
+        }
+        
       }
 
       if (content.blog) {
