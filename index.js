@@ -241,65 +241,51 @@ async function run() {
     app.delete("/delete/:_id", async (req, res) => {
       const _id = req.params._id;
       const query = { _id: new ObjectId(_id) };
+
+      //removing clapped blog from a user if the owner of the blog delete the particular post
+      const removeClappedResult = await users.updateMany(
+        {
+          clapped: {
+          $elemMatch: {
+            _id:_id
+          }
+
+        }
+      },
+      {
+        $pull:{
+          clapped: {
+            _id:_id
+          }
+        }
+      }
+      );
+
+      console.log(removeClappedResult);
+
+      //removing bookmarked blog from a user if the owner of the blog delete the particular post
+      const removeBookmarkedResult = await users.updateMany(
+        {
+          bookmarks: {
+            $elemMatch: {
+              _id: _id,
+            },
+          },
+        },
+        {
+          $pull: {
+            bookmarks: {
+              _id: _id,
+            },
+          },
+        }
+      );
+
+      console.log(removeBookmarkedResult)
+
       const result = await blogs.deleteOne(query);
       res.send(result);
     });
-    //checking
-
-    // app.put("/removeBookmarked", async (req, res) => {
-    //   const _id = req.body._id;
-    // });
-
-    //removing from bookmarks
-    app.put("/removeBookmarked", async (req, res) => {
-      try {
-        const targetedId = req.body._id;
-        console.log("Received _id:", targetedId);
-    
-        // Find users with bookmarks that contain an object with _id: targetedId
-        const usersWithBookmarks = await users.find({
-          bookmarks: {
-            $elemMatch: {
-              _id: targetedId,
-            },
-          },
-        }).toArray();
-    
-        console.log("Users with bookmarks to be updated:", usersWithBookmarks);
-    
-        // Update users who have bookmarks and contain an object with _id: targetedId
-        const result = await users.updateMany(
-          {
-            bookmarks: {
-              $elemMatch: {
-                _id: targetedId,
-              },
-            },
-          },
-          {
-            $pull: {
-              bookmarks: {
-                _id: targetedId,
-              },
-            },
-          }
-        );
-    
-        console.log("MongoDB Update Result:", result);
-    
-        // Check the result to see if any documents were modified
-        if (result.modifiedCount > 0) {
-          res.status(200).json({ message: "Bookmarks removed successfully." });
-        } else {
-          res.status(404).json({ message: "No users with the specified _id were found." });
-        }
-      } catch (error) {
-        console.error("Server Error:", error);
-        res.status(500).json({ message: "Internal Server Error", error: error.message });
-      }
-    });
-    
-    
     
   } catch (error) {}
 }
