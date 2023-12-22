@@ -43,28 +43,27 @@ async function run() {
 
     //get all user's
 
-    app.get("/users", async (req,res) =>{
+    app.get("/users", async (req, res) => {
       const query = {};
       const allUsers = await users.find(query).toArray();
-      res.send(allUsers)
-    })
+      res.send(allUsers);
+    });
 
     //edit a user's profile
 
     app.put("/users/:userId", async (req, res) => {
       const userId = req.params.userId; //currently logged in who clicked follow
       const content = req.body;
-      console.log(content);
+      // console.log(content);
       const targetedUser = content.follower?.uid; //targeted user
       const filter = { uid: userId };
-      const filterTargetedUser = {uid:targetedUser}
+      const filterTargetedUser = { uid: targetedUser };
       const options = { upsert: true };
       const updateDoc = { $set: {} };
       const updateDocTargetedUser = { $set: {} };
       if (content.photoURL) {
         updateDoc.$set.profilePic = content.photoURL;
       }
-      
 
       if (content.displayName) {
         updateDoc.$set.name = content.displayName;
@@ -77,13 +76,16 @@ async function run() {
       // }
 
       if (content.selectedBlogData) {
-        if (content.action.action ==="Bookmark") {
-          updateDoc.$push = {bookmarks:content.selectedBlogData.selectedBlogData};
+        if (content.action.action === "Bookmark") {
+          updateDoc.$push = {
+            bookmarks: content.selectedBlogData.selectedBlogData,
+          };
         }
-        if (content.action.action ==="RemoveBookmark") {
-          updateDoc.$pull = {bookmarks:content.selectedBlogData.selectedBlogData};
+        if (content.action.action === "RemoveBookmark") {
+          updateDoc.$pull = {
+            bookmarks: content.selectedBlogData.selectedBlogData,
+          };
         }
-        
       }
 
       if (content.blog) {
@@ -92,18 +94,21 @@ async function run() {
 
       if (content.following && content.follower) {
         if (content.action === "follow") {
-          updateDoc.$push = {following: content.follower}
-        updateDocTargetedUser.$push = {followers:content.following}
-        }
-        else if (content.action === "unFollow") {
-          updateDoc.$pull = {following: content.follower}
-        updateDocTargetedUser.$pull = {followers:content.following}
+          updateDoc.$push = { following: content.follower };
+          updateDocTargetedUser.$push = { followers: content.following };
+        } else if (content.action === "unFollow") {
+          updateDoc.$pull = { following: content.follower };
+          updateDocTargetedUser.$pull = { followers: content.following };
         }
       }
 
       const result = await users.updateOne(filter, updateDoc, options);
-      const targetedResult = await users.updateOne(filterTargetedUser,updateDocTargetedUser,options)
-      res.send({result,targetedResult});
+      const targetedResult = await users.updateOne(
+        filterTargetedUser,
+        updateDocTargetedUser,
+        options
+      );
+      res.send({ result, targetedResult });
     });
 
     //get a user's Details
@@ -150,7 +155,7 @@ async function run() {
     //update a user's blog
     app.put("/blogs/myBlogs/edit/:_id", async (req, res) => {
       const _id = req.params._id;
-      console.log(_id);
+      // console.log(_id);
       const data = req.body;
       const filter = { _id: new ObjectId(_id) };
       const options = { upsert: true };
@@ -165,39 +170,37 @@ async function run() {
       res.send(result);
     });
     //update authorInfo for blogs
-    app.put("/blogs/updateAuthorInfo", async (req,res) =>{
+    app.put("/blogs/updateAuthorInfo", async (req, res) => {
       const data = req.body;
-      const filter = {userUid : data.userUid};
-      const options = {multi:true};
+      const filter = { userUid: data.userUid };
+      const options = { multi: true };
 
       if (data.userUid && data.author) {
         const updateDoc = {
           $set: {
-            author:data.author
-          }
-        }
-        const result = await blogs.updateMany(filter,updateDoc,options);
-        console.log(result);
-        res.send(result)
-      }
-
-      else if (data.userUid && data.photoURL) {
+            author: data.author,
+          },
+        };
+        const result = await blogs.updateMany(filter, updateDoc, options);
+        // console.log(result);
+        res.send(result);
+      } else if (data.userUid && data.photoURL) {
         const updatedDoc = {
           $set: {
-            authorImage:data.photoURL
-          }
-        }
+            authorImage: data.photoURL,
+          },
+        };
 
-        const result = await blogs.updateMany(filter,updatedDoc,options);
-        res.send(result)
+        const result = await blogs.updateMany(filter, updatedDoc, options);
+        res.send(result);
       }
-      
-    })
+    });
+
     app.put("/blogs/blogDetails/likes/:_id/:userId", async (req, res) => {
       try {
         const _id = req.params._id;
         const userId = req.params.userId;
-        console.log(userId);
+        // console.log(userId);
         const filter = { _id: new ObjectId(_id) };
         const options = { upsert: true };
         const blog = await blogs.findOne(filter);
@@ -241,6 +244,63 @@ async function run() {
       const result = await blogs.deleteOne(query);
       res.send(result);
     });
+    //checking
+
+    // app.put("/removeBookmarked", async (req, res) => {
+    //   const _id = req.body._id;
+    // });
+
+    //removing from bookmarks
+    app.put("/removeBookmarked", async (req, res) => {
+      try {
+        const targetedId = req.body._id;
+        console.log("Received _id:", targetedId);
+    
+        // Find users with bookmarks that contain an object with _id: targetedId
+        const usersWithBookmarks = await users.find({
+          bookmarks: {
+            $elemMatch: {
+              _id: targetedId,
+            },
+          },
+        }).toArray();
+    
+        console.log("Users with bookmarks to be updated:", usersWithBookmarks);
+    
+        // Update users who have bookmarks and contain an object with _id: targetedId
+        const result = await users.updateMany(
+          {
+            bookmarks: {
+              $elemMatch: {
+                _id: targetedId,
+              },
+            },
+          },
+          {
+            $pull: {
+              bookmarks: {
+                _id: targetedId,
+              },
+            },
+          }
+        );
+    
+        console.log("MongoDB Update Result:", result);
+    
+        // Check the result to see if any documents were modified
+        if (result.modifiedCount > 0) {
+          res.status(200).json({ message: "Bookmarks removed successfully." });
+        } else {
+          res.status(404).json({ message: "No users with the specified _id were found." });
+        }
+      } catch (error) {
+        console.error("Server Error:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+      }
+    });
+    
+    
+    
   } catch (error) {}
 }
 run().catch(console.log);
