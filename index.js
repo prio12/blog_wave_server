@@ -56,6 +56,7 @@ async function run() {
       const content = req.body;
       // console.log(content);
       const targetedUser = content.follower?.uid; //targeted user
+      const currentDate = new Date();
       const filter = { uid: userId };
       const filterTargetedUser = { uid: targetedUser };
       const options = { upsert: true };
@@ -71,9 +72,6 @@ async function run() {
       if (content.about) {
         updateDoc.$set.about = content.about;
       }
-      // if (content.selectedBlogData) {
-      //   updateDoc.$push = { bookmarks: content.selectedBlogData };
-      // }
 
       if (content.selectedBlogData) {
         if (content.action.action === "Bookmark") {
@@ -95,7 +93,7 @@ async function run() {
       if (content.following && content.follower) {
         if (content.action === "follow") {
           updateDoc.$push = { following: content.follower };
-          updateDocTargetedUser.$push = { followers: content.following };
+          updateDocTargetedUser.$push = { followers: content.following, notifications: {...content.following, status:"unread", date: currentDate.toISOString(),} };
         } else if (content.action === "unFollow") {
           updateDoc.$pull = { following: content.follower };
           updateDocTargetedUser.$pull = { followers: content.following };
@@ -236,6 +234,29 @@ async function run() {
       res.json(updatedBlog);
     });
 
+    //Changing notification status
+
+   app.put('/user/notification', async (req, res) => {
+  try {
+    const userUid = req.body.userUid;
+    const filter = { uid: userUid };
+
+    const updateDoc = {
+      $set: {
+        'notifications.$[].status': 'read',
+      },
+    };
+
+    const result = await users.updateOne(filter, updateDoc);
+    console.log(result);
+
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+});
+
+
     //delete a blog
 
     app.delete("/delete/:_id", async (req, res) => {
@@ -286,6 +307,16 @@ async function run() {
       const result = await blogs.deleteOne(query);
       res.send(result);
     });
+
+    app.delete("/adminDelete", async (req,res) =>{
+      const data = req.body;
+      if (data.user && data.type === "user") {
+        console.log("info for user delete");
+      }
+      if (data.blog && data.type === "blog") {
+        console.log("info for blog delete");
+      }
+    })
     
   } catch (error) {}
 }
