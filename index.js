@@ -316,17 +316,18 @@ async function run() {
 
     app.delete("/adminDelete", async (req, res) => {
       const data = req.body;
+      console.log(data);
       if (data.user && data.type === "user") {
         const userUid = data.user.uid;
         const query = {uid:userUid}
         // removing certain user from users followers list when the admin delete a blog
         const removedFollowerResult = await users.updateMany(
           {
-            $elemMatch: {
-              followers: {
-                uid: userUid,
-              },
-            },
+            followers: {
+              $elemMatch: {
+                uid:userUid
+              }
+            }
           },
           {
             $pull: {
@@ -342,11 +343,11 @@ async function run() {
 
         const removedFollowingResult = await users.updateMany(
           {
-            $elemMatch: {
-              following: {
-                uid:userUid
+            following: {
+              $elemMatch: {
+                uid: userUid
               }
-            }
+            } 
           },
           {
             $pull: {
