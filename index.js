@@ -93,7 +93,14 @@ async function run() {
       if (content.following && content.follower) {
         if (content.action === "follow") {
           updateDoc.$push = { following: content.follower };
-          updateDocTargetedUser.$push = { followers: content.following, notifications: {...content.following, status:"unread", date: currentDate.toISOString(),} };
+          updateDocTargetedUser.$push = {
+            followers: content.following,
+            notifications: {
+              ...content.following,
+              status: "unread",
+              date: currentDate.toISOString(),
+            },
+          };
         } else if (content.action === "unFollow") {
           updateDoc.$pull = { following: content.follower };
           updateDocTargetedUser.$pull = { followers: content.following };
@@ -236,26 +243,26 @@ async function run() {
 
     //Changing notification status
 
-   app.put('/user/notification', async (req, res) => {
-  try {
-    const userUid = req.body.userUid;
-    const filter = { uid: userUid };
+    app.put("/user/notification", async (req, res) => {
+      try {
+        const userUid = req.body.userUid;
+        const filter = { uid: userUid };
 
-    const updateDoc = {
-      $set: {
-        'notifications.$[].status': 'read',
-      },
-    };
+        const updateDoc = {
+          $set: {
+            "notifications.$[].status": "read",
+          },
+        };
 
-    const result = await users.updateOne(filter, updateDoc);
-    console.log(result);
-
-  } catch (error) {
-    console.error('Server Error:', error);
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
-  }
-});
-
+        const result = await users.updateOne(filter, updateDoc);
+        console.log(result);
+      } catch (error) {
+        console.error("Server Error:", error);
+        res
+          .status(500)
+          .json({ message: "Internal Server Error", error: error.message });
+      }
+    });
 
     //delete a blog
 
@@ -267,19 +274,18 @@ async function run() {
       const removeClappedResult = await users.updateMany(
         {
           clapped: {
-          $elemMatch: {
-            _id:_id
-          }
-
+            $elemMatch: {
+              _id: _id,
+            },
+          },
+        },
+        {
+          $pull: {
+            clapped: {
+              _id: _id,
+            },
+          },
         }
-      },
-      {
-        $pull:{
-          clapped: {
-            _id:_id
-          }
-        }
-      }
       );
 
       console.log(removeClappedResult);
@@ -302,22 +308,102 @@ async function run() {
         }
       );
 
-      console.log(removeBookmarkedResult)
+      console.log(removeBookmarkedResult);
 
       const result = await blogs.deleteOne(query);
       res.send(result);
     });
 
-    app.delete("/adminDelete", async (req,res) =>{
+    app.delete("/adminDelete", async (req, res) => {
       const data = req.body;
       if (data.user && data.type === "user") {
-        console.log("info for user delete");
+        const userUid = data.user.uid;
+        const query = {uid:userUid}
+        // removing certain user from users followers list when the admin delete a blog
+        const removedFollowerResult = await users.updateMany(
+          {
+            $elemMatch: {
+              followers: {
+                uid: userUid,
+              },
+            },
+          },
+          {
+            $pull: {
+              followers: {
+                uid: userUid,
+              },
+            },
+          }
+        );
+        console.log(removedFollowerResult);
+
+        // removing certain user from users followers list when the admin delete a blog
+
+        const removedFollowingResult = await users.updateMany(
+          {
+            $elemMatch: {
+              following: {
+                uid:userUid
+              }
+            }
+          },
+          {
+            $pull: {
+              following: {
+                uid:userUid
+              }
+            }
+          }
+        )
+
+        console.log(removedFollowingResult);
+        const result = await users.deleteOne(query);
+        res.send(result);
       }
       if (data.blog && data.type === "blog") {
-        console.log("info for blog delete");
+        const _id = data.blog._id;
+        const query = { _id: new ObjectId(_id) };
+        // removing certain blog from users bookmarks when the admin delete a blog
+        const removeBookmarkedResult = await users.updateMany(
+          {
+            bookmarks: {
+              $elemMatch: {
+                _id: _id,
+              },
+            },
+          },
+          {
+            $pull: {
+              bookmarks: {
+                _id: _id,
+              },
+            },
+          }
+        );
+        console.log(removeBookmarkedResult);
+        // removing certain blog from users clapped when the admin delete a blog
+        const removeClappedResult = await users.updateMany(
+          {
+            clapped: {
+              $elemMatch: {
+                _id:_id
+              }
+            }
+          },
+          {
+            $pull: {
+              clapped: {
+                _id:_id
+              }
+            }
+          }
+        )
+        console.log(removeClappedResult);
+        const result = await blogs.deleteOne(query);
+        res.send(result);
       }
-    })
-    
+    });
   } catch (error) {}
 }
 run().catch(console.log);
