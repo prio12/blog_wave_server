@@ -47,7 +47,7 @@ Before running this project, ensure you have:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/blogwave-server.git
+   git clone https://github.com/prio12/blog_wave_server.git
    cd blogwave-server
    ```
 
