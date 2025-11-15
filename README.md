@@ -195,7 +195,7 @@ The API implements cascade deletion patterns:
 
 ## 🔗 Related Repositories
 
-- **[Blogwave Client](https://github.com/prio12/BlogWave)** - Backend API with Socket.io server, Express, and MongoDB
+- **[Blogwave Client](https://github.com/prio12/BlogWave)** - Front End with React, firebase, tailwind, cloudinary
 
 ---
 
