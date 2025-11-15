@@ -191,6 +191,14 @@ The API implements cascade deletion patterns:
 - [ ] Implement caching layer (Redis)
 - [ ] Add TypeScript support
 
+---
+
+## 🔗 Related Repositories
+
+- **[Blogwave Server](https://github.com/prio12/BlogWave)** - Backend API with Socket.io server, Express, and MongoDB
+
+---
+
 ## 👥 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
